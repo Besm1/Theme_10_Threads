@@ -4,9 +4,9 @@ from datetime import datetime
 import threading
 
 def write_words(word_count, file_name):
-    with open(file=file_name, mode='w',encoding='windows-1251') as f:
+    with open(file=file_name, mode='w',encoding='utf-8') as f:
         for i in range(word_count):
-            f.write(f'Какое-то слово № {i + 1}')
+            f.write(f'Какое-то слово № {i + 1}\n')
             sleep(0.1)
     print(f'Завершилась запись в файл {file_name}')
 
