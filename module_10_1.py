@@ -4,7 +4,7 @@ from datetime import datetime
 import threading
 
 def write_words(word_count, file_name):
-    with open(file=file_name, mode='w') as f:
+    with open(file=file_name, mode='w',encoding='windows-1251') as f:
         for i in range(word_count):
             f.write(f'Какое-то слово № {i + 1}')
             sleep(0.1)
