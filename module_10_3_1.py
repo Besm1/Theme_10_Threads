@@ -10,12 +10,16 @@ class Bank:
     def deposit(self):
         for i in range(100):
             income = randint(50, 500)
+            print(f'@1({i}): Запрос на пополнение {income}.')
             locked_by_funds_shortage = self.lock.locked()
             if not locked_by_funds_shortage:
-                print(f'@1({i}): Закрываем замок для фиксации прихода')
+                print(f'@1({i}): locked_by_funds_shortage = {locked_by_funds_shortage}. Закрываем замок для фиксации '
+                      f'прихода (self.lock.locked()={self.lock.locked()})')
                 self.lock.acquire()
+                print(f'@1({i}): Замок закрыт')
             self.balance += income
             print(f'@1({i}): Пополнение {income}. Баланс {self.balance}')
+            sleep(0.01)     # Транзакция занимает время...
             if  locked_by_funds_shortage:
                 if self.balance > 500:
                     print(f'@1({i}): Приход зафиксирован, средств стало много! Открываем замок')
@@ -25,23 +29,22 @@ class Bank:
             else:
                 print(f'@1({i}): Приход зафиксирован, открываем замок')
                 self.lock.release()
-            sleep(0.01)     # Транзакция занимает время...
 
     def take(self):
         for i in range(100):
             expense = randint(50,500)
-            print(f'@2({i}): Запрос на {expense}.')
+            print(f'    @2({i}): Запрос на снятие {expense}.')
             if self.balance >= expense:
-                print(f'@2({i}): Закрываем замок...')
+                print(f'    @2({i}): Закрываем замок...')
                 self.lock.acquire()
-                print(f'@2({i}): ...замок закрыт!')
+                print(f'    @2({i}): ...замок закрыт!')
                 self.balance -= expense
-                print(f'@2({i}): Снятие {expense}. Баланс {self.balance}. Открываем замок.')
+                print(f'    @2({i}): Снятие {expense}. Баланс {self.balance}. Открываем замок.')
                 self.lock.release()
             else:
-                print(f'@2({i}): Запрос отклонён, недостаточно средств. Пытаемся закрыть замок')
+                print(f'    @2({i}): Запрос отклонён, недостаточно средств (баланс {self.balance}). Пытаемся закрыть замок')
                 self.lock.acquire()
-                print(f'@2({i}): Замок закрыт!')
+                print(f'    @2({i}): Замок закрыт!')
 
 if __name__ == '__main__':
     bank = Bank(0)
