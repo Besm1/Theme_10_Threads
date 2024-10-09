@@ -16,6 +16,7 @@ class Bank:
                 self.lock.acquire()
             self.balance += income
             print(f'@1({i}): Пополнение {income}. Баланс {self.balance}')
+            # sleep(0.001)     # Транзакция занимает время...
             if  locked_by_funds_shortage:
                 if self.balance > 500:
                     # print(f'@1({i}): Приход зафиксирован, средств стало много! Открываем замок')
@@ -26,7 +27,7 @@ class Bank:
             else:
                 # print(f'@1({i}): Приход зафиксирован, открываем замок')
                 self.lock.release()
-            sleep(0.01)     # Транзакция занимает время...
+            sleep(0.001)     # Транзакция занимает время...
 
     def take(self):
         for i in range(100):
