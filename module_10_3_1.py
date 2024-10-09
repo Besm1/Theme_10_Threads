@@ -19,7 +19,7 @@ class Bank:
                 print(f'@1({i}): Замок закрыт')
             self.balance += income
             print(f'@1({i}): Пополнение {income}. Баланс {self.balance}')
-            sleep(0.01)     # Транзакция занимает время...
+            # sleep(0.001)     # Транзакция занимает время...
             if  locked_by_funds_shortage:
                 if self.balance > 500:
                     print(f'@1({i}): Приход зафиксирован, средств стало много! Открываем замок')
@@ -29,6 +29,7 @@ class Bank:
             else:
                 print(f'@1({i}): Приход зафиксирован, открываем замок')
                 self.lock.release()
+            sleep(0.001)     # А это не время на транзакцию, а время между транзакциями... Непонятно, зачем.
 
     def take(self):
         for i in range(100):
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     t2.start()
 
     t2.join()
-    print('@2(--): Поток два стрельбу закончил!')
+    print('    @2(--): Поток два стрельбу закончил!')
     t1.join()
 
     print(f'\nИтоговый баланс: {bank.balance}')
