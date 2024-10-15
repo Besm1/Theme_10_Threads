@@ -5,47 +5,54 @@ from time import sleep
 class Bank:
     def __init__(self, balance):
         self.balance = balance
-        self.lock = Lock()
+        self.change_lock = Lock()
+        self.take_lock = Lock()
 
     def deposit(self):
         for i in range(100):
             income = randint(50, 500)
-            print(f'@1({i}): Запрос на пополнение {income}.')
-            locked_by_funds_shortage = self.lock.locked()
-            if not locked_by_funds_shortage:
-                print(f'@1({i}): locked_by_funds_shortage = {locked_by_funds_shortage}. Закрываем замок для фиксации '
-                      f'прихода (self.lock.locked()={self.lock.locked()})')
-                self.lock.acquire()
-                print(f'@1({i}): Замок закрыт')
+            print(f'@1({i}): Запрос на пополнение {income}. Пытаемся закрыть замок change_lock...')
+            self.change_lock.acquire()
+            print(f'@1({i}): ... замок change_lock закрыт')
             self.balance += income
             print(f'@1({i}): Пополнение {income}. Баланс {self.balance}')
             sleep(0.001)     # Транзакция занимает время...
-            if  locked_by_funds_shortage:
-                if self.balance > 500:
-                    print(f'@1({i}): Приход зафиксирован, средств стало много! Открываем замок')
-                    self.lock.release()
-                else:
-                    print(f'@1({i}): Приход зафиксирован, но средств мало. Замок НЕ открываем.')
-            else:
-                print(f'@1({i}): Приход зафиксирован, открываем замок')
-                self.lock.release()
+            print(f'@1({i}): Приход зафиксирован, открываем замок change_lock')
+            self.change_lock.release()
+            if self.take_lock.locked() and self.balance > 500:
+                self.take_lock.release()
+                print(f'@1({i}): Средств стало достаточно, открываем замок take_lock')
             # sleep(0.001)     # А это не время на транзакцию, а время между транзакциями... Непонятно, зачем.
 
     def take(self):
         for i in range(100):
             expense = randint(50,500)
             print(f'    @2({i}): Запрос на снятие {expense}.')
+            if self.take_lock.locked() and not t1.is_alive():  # Если снятие залочено, а поступлений больше не будет
+                self.take_lock.release()
             if self.balance >= expense:
-                print(f'    @2({i}): Закрываем замок...')
-                self.lock.acquire()
-                print(f'    @2({i}): ...замок закрыт!')
+                print(f'    @2({i}): Закрываем замок take_lock. Если не получилось - значит заблокировано по недостаче...')
+                self.take_lock.acquire(timeout=0.000000001)
+                # if not t1.is_alive():
+                print(f'    @2({i}): ...замок take_lock закрыт!')
+                print(f'    @2({i}): Закрываем замок change_lock. Если не получилось - значит сейчас происходит пополнение...')
+                self.change_lock.acquire()
+                print(f'    @2({i}): ...замок change_lock закрыт!')
                 self.balance -= expense
-                print(f'    @2({i}): Снятие {expense}. Баланс {self.balance}. Открываем замок.')
-                self.lock.release()
+                print(f'    @2({i}): Снятие {expense}. Баланс {self.balance}. Открываем замок change_lock.')
+                self.change_lock.release()
+                print(f'    @2({i}): Открываем замок замок take_lock!')
+                if self.take_lock.locked():
+                    self.take_lock.release()
             else:
-                print(f'    @2({i}): Запрос отклонён, недостаточно средств (баланс {self.balance}). Пытаемся закрыть замок')
-                self.lock.acquire()
-                print(f'    @2({i}): Замок закрыт!')
+                print(f'    @2({i}): Запрос отклонён, недостаточно средств (баланс {self.balance}).', end='')
+                if t1.is_alive():
+                    print(f'    @2({i}): Закрываем замок take_lock')
+                    self.take_lock.acquire()
+                    print(f'    @2({i}): замок take_lock закрыт!')
+                else:
+                    print(f'    @2({i}): Счёт арестован за недостачу!')
+                    break
 
 if __name__ == '__main__':
     bank = Bank(0)
